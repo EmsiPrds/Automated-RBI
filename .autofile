@@ -1,0 +1,27 @@
+.init {
+  $ taskkill /F /IM node.exe
+  $ code .
+}
+dev {
+  $ wr http://localhost:3000
+  + cd rbi-backend && npm run dev
+  + cd rbi-frontend && npm run dev
+}
+
+build {
+  + cd rbi-backend && npm run build
+  + cd rbi-frontend && npm run build
+
+}
+
+publish {
+  + cd rbi-backend && npm run publish
+  + cd rbi-frontend && npm run publish
+
+}
+
+
+share {
+  + sshtunnel
+  + code serve-web --host 0.0.0.0 --port 5000 --without-connection-token --accept-server-license-terms
+}
