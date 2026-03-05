@@ -2,10 +2,12 @@
  * Seed script: creates one test user per role for local/dev/testing.
  *
  * Seed accounts (shared password: password123):
- *   Resident:        resident@dev.local
- *   Encoder:         encoder@dev.local
- *   Secretary:       secretary@dev.local
- *   Punong Barangay: punong_barangay@dev.local
+ *   Resident:        resident@dev.local  (username: resident)
+ *   Encoder:         encoder@dev.local   (username: encoder)
+ *   Secretary:       secretary@dev.local (username: secretary)
+ *   Punong Barangay: punong_barangay@dev.local (username: punong)
+ *   Viewer (SK):     viewer@dev.local    (username: viewer)
+ *   Admin:           admin@dev.local     (username: admin)
  *
  * Run: npm run seed (from rbi-backend). Requires MONGO_URI in .env.
  * Do NOT run in production.
@@ -25,10 +27,12 @@ const staffLocation = {
 };
 
 const seedUsers = [
-  { email: 'resident@dev.local', fullName: 'Dev Resident', role: 'resident' },
-  { email: 'encoder@dev.local', fullName: 'Dev Encoder', role: 'encoder', ...staffLocation },
-  { email: 'secretary@dev.local', fullName: 'Dev Secretary', role: 'secretary', ...staffLocation },
-  { email: 'punong_barangay@dev.local', fullName: 'Dev Punong Barangay', role: 'punong_barangay', ...staffLocation },
+  { email: 'resident@dev.local', username: 'resident', fullName: 'Dev Resident', role: 'resident' },
+  { email: 'encoder@dev.local', username: 'encoder', fullName: 'Dev Encoder', role: 'encoder', ...staffLocation },
+  { email: 'secretary@dev.local', username: 'secretary', fullName: 'Dev Secretary', role: 'secretary', ...staffLocation },
+  { email: 'punong_barangay@dev.local', username: 'punong', fullName: 'Dev Punong Barangay', role: 'punong_barangay', ...staffLocation },
+  { email: 'viewer@dev.local', username: 'viewer', fullName: 'Dev Viewer (SK)', role: 'viewer', ...staffLocation },
+  { email: 'admin@dev.local', username: 'admin', fullName: 'Dev Admin', role: 'admin' },
 ];
 
 async function seed() {
@@ -38,12 +42,17 @@ async function seed() {
     for (const entry of seedUsers) {
       const existing = await User.findOne({ email: entry.email });
       if (existing) {
+        const updates = {};
+        if (entry.username && !existing.username) updates.username = entry.username;
         if (entry.barangay && existing.barangay !== entry.barangay) {
-          await User.updateOne(
-            { email: entry.email },
-            { $set: { barangay: entry.barangay, cityMunicipality: entry.cityMunicipality, province: entry.province, region: entry.region } }
-          );
-          console.log(`Updated location: ${entry.email}`);
+          updates.barangay = entry.barangay;
+          updates.cityMunicipality = entry.cityMunicipality;
+          updates.province = entry.province;
+          updates.region = entry.region;
+        }
+        if (Object.keys(updates).length) {
+          await User.updateOne({ email: entry.email }, { $set: updates });
+          console.log(`Updated: ${entry.email}`);
         } else {
           console.log(`Skip (exists): ${entry.email}`);
         }

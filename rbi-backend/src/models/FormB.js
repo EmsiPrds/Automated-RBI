@@ -53,6 +53,7 @@ const formBSchema = new mongoose.Schema(
     enteredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     lastModifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     consentObtainedAt: { type: Date },
+    dateAccomplished: { type: Date },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }

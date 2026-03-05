@@ -12,6 +12,7 @@ const householdSchema = new mongoose.Schema(
     barangay: { type: String, trim: true },
     householdAddress: { type: String, trim: true },
     householdNumber: { type: String, trim: true },
+    headOfFamily: { type: String, trim: true },
     numberOfMembers: { type: Number, default: 0 },
     status: { type: String, enum: STATUSES, default: 'draft' },
     inhabitants: [inhabitantSchema],

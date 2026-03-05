@@ -11,7 +11,7 @@ import {
   submit,
 } from '../controllers/formBController.js';
 import { protect } from '../middleware/auth.js';
-import { requireRole, requireBarangayScope } from '../middleware/roleCheck.js';
+import { requireRole, requireBarangayScope, requireNotViewer } from '../middleware/roleCheck.js';
 
 const router = express.Router();
 
@@ -23,6 +23,7 @@ router.get('/:id', requireBarangayScope, getOne);
 router.post(
   '/',
   requireBarangayScope,
+  requireNotViewer,
   [
     body('region').optional().trim(),
     body('province').optional().trim(),
@@ -42,6 +43,7 @@ router.post(
     body('occupation').optional().trim(),
     body('philSysCardNo').optional().trim(),
     body('courseSpecification').optional().trim(),
+    body('dateAccomplished').optional().isISO8601(),
     body('dataSource').optional().isIn(['self-entered', 'staff-assisted', 'encoded-from-paper']),
   ],
   create
@@ -50,6 +52,7 @@ router.post(
 router.put(
   '/:id',
   requireBarangayScope,
+  requireNotViewer,
   [
     body('region').optional().trim(),
     body('province').optional().trim(),
@@ -69,15 +72,16 @@ router.put(
     body('occupation').optional().trim(),
     body('philSysCardNo').optional().trim(),
     body('courseSpecification').optional().trim(),
+    body('dateAccomplished').optional().isISO8601(),
     body('dataSource').optional().isIn(['self-entered', 'staff-assisted', 'encoded-from-paper']),
   ],
   update
 );
 
-router.delete('/:id', requireBarangayScope, remove);
+router.delete('/:id', requireBarangayScope, requireNotViewer, remove);
 
-router.patch('/:id/submit', requireBarangayScope, body('preparedBy').optional().trim(), submit);
-router.patch('/:id/certify', requireRole('secretary'), certify);
-router.patch('/:id/validate', requireRole('punong_barangay'), validate);
+router.patch('/:id/submit', requireBarangayScope, requireNotViewer, body('preparedBy').optional().trim(), submit);
+router.patch('/:id/certify', requireRole('secretary', 'admin'), certify);
+router.patch('/:id/validate', requireRole('punong_barangay', 'admin'), validate);
 
 export default router;

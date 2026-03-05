@@ -42,6 +42,7 @@ const emptyForm = () => ({
   isOSC: false,
   isIP: false,
   dataSource: 'self-entered',
+  dateAccomplished: '',
 });
 
 function calcAge(dateStr) {
@@ -99,6 +100,7 @@ export default function FormBForm() {
           highestEducationalAttainment: r.highestEducationalAttainment || '',
           graduateOrUndergraduate: r.graduateOrUndergraduate || '',
           courseSpecification: r.courseSpecification || '',
+          dateAccomplished: r.dateAccomplished ? (r.dateAccomplished.slice ? r.dateAccomplished.slice(0, 10) : new Date(r.dateAccomplished).toISOString().slice(0, 10)) : '',
           isLaborEmployed: !!r.isLaborEmployed,
           isUnemployed: !!r.isUnemployed,
           isPWD: !!r.isPWD,
@@ -152,6 +154,7 @@ export default function FormBForm() {
       highestEducationalAttainment: form.highestEducationalAttainment || undefined,
       graduateOrUndergraduate: form.graduateOrUndergraduate || undefined,
       courseSpecification: form.courseSpecification,
+      dateAccomplished: form.dateAccomplished || undefined,
       isLaborEmployed: form.isLaborEmployed,
       isUnemployed: form.isUnemployed,
       isPWD: form.isPWD,
@@ -304,6 +307,10 @@ export default function FormBForm() {
           <div className="form-group" style={{ gridColumn: '1 / -1' }}>
             <label>Course specification</label>
             <input value={form.courseSpecification} onChange={(e) => update('courseSpecification', e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>Date accomplished</label>
+            <input type="date" value={form.dateAccomplished} onChange={(e) => update('dateAccomplished', e.target.value)} />
           </div>
         </div>
 

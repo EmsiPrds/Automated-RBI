@@ -1,13 +1,19 @@
 import FormB from '../models/FormB.js';
 import { validationResult } from 'express-validator';
+import { logActivity } from '../utils/activityLogger.js';
 
-const staffRoles = ['encoder', 'secretary', 'punong_barangay'];
-const canSetHouseholdNumber = ['secretary', 'punong_barangay'];
-const canCertify = ['secretary'];
-const canValidate = ['punong_barangay'];
+const staffRoles = ['encoder', 'secretary', 'punong_barangay', 'viewer'];
+const canSetHouseholdNumber = ['secretary', 'punong_barangay', 'admin'];
+const canCertify = ['secretary', 'admin'];
+const canValidate = ['punong_barangay', 'admin'];
+
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').trim();
+}
 
 function getListFilter(req) {
   const { user } = req;
+  if (user.role === 'admin') return {};
   if (user.role === 'resident') {
     return { createdBy: user._id };
   }
@@ -23,10 +29,21 @@ function getListFilter(req) {
 export const list = async (req, res) => {
   try {
     const filter = getListFilter(req);
-    const { barangay, cityMunicipality, status, page = 1, limit = 20 } = req.query;
+    const { barangay, cityMunicipality, status, search, philsys, address, householdNumber, page = 1, limit = 20 } = req.query;
     if (barangay) filter.barangay = barangay;
     if (cityMunicipality) filter.cityMunicipality = cityMunicipality;
     if (status) filter.status = status;
+    if (philsys && escapeRegex(philsys)) filter.philSysCardNo = new RegExp(escapeRegex(philsys), 'i');
+    if (address && escapeRegex(address)) filter.residenceAddress = new RegExp(escapeRegex(address), 'i');
+    if (householdNumber && escapeRegex(householdNumber)) filter.householdNumber = new RegExp(escapeRegex(householdNumber), 'i');
+    if (search && escapeRegex(search)) {
+      const re = new RegExp(escapeRegex(search), 'i');
+      filter.$or = [
+        { lastName: re },
+        { firstName: re },
+        { middleName: re },
+      ];
+    }
 
     const skip = (Math.max(1, parseInt(page, 10)) - 1) * Math.min(100, Math.max(1, parseInt(limit, 10)));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
@@ -65,6 +82,7 @@ export const create = async (req, res) => {
     if (req.body.dataSource) data.dataSource = req.body.dataSource;
     if (req.body.consentObtainedAt) data.consentObtainedAt = new Date(req.body.consentObtainedAt);
     if (req.body.dateOfBirth) data.dateOfBirth = new Date(req.body.dateOfBirth);
+    if (req.body.dateAccomplished) data.dateAccomplished = new Date(req.body.dateAccomplished);
     if (req.user.role === 'resident') {
       data.dataSource = 'self-entered';
     } else if (staffRoles.includes(req.user.role) && req.user.barangay) {
@@ -72,6 +90,7 @@ export const create = async (req, res) => {
       if (!data.dataSource) data.dataSource = 'staff-assisted';
     }
     const record = await FormB.create(data);
+    logActivity(req, { action: 'create', resource: 'formB', resourceId: record._id.toString() });
     res.status(201).json(record);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -92,8 +111,10 @@ export const update = async (req, res) => {
     data.lastModifiedBy = req.user._id;
     if (!canEditNumber && data.householdNumber !== undefined) delete data.householdNumber;
     if (data.dateOfBirth) data.dateOfBirth = new Date(data.dateOfBirth);
+    if (data.dateAccomplished) data.dateAccomplished = new Date(data.dateAccomplished);
     Object.assign(record, data);
     await record.save();
+    logActivity(req, { action: 'update', resource: 'formB', resourceId: record._id.toString() });
     res.json(record);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -105,6 +126,7 @@ export const remove = async (req, res) => {
     const filter = getListFilter(req);
     const record = await FormB.findOneAndDelete({ _id: req.params.id, ...filter });
     if (!record) return res.status(404).json({ message: 'Form B record not found' });
+    logActivity(req, { action: 'delete', resource: 'formB', resourceId: req.params.id });
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -1,6 +1,7 @@
 import Household from '../models/Household.js';
 import FormB from '../models/FormB.js';
 import { validationResult } from 'express-validator';
+import { logActivity } from '../utils/activityLogger.js';
 
 async function syncHouseholdToFormB(household) {
   const inhabitants = household.inhabitants || [];
@@ -61,13 +62,14 @@ async function syncHouseholdToFormB(household) {
   });
 }
 
-const staffRoles = ['encoder', 'secretary', 'punong_barangay'];
-const canSetHouseholdNumber = ['secretary', 'punong_barangay'];
-const canCertify = ['secretary'];
-const canValidate = ['punong_barangay'];
+const staffRoles = ['encoder', 'secretary', 'punong_barangay', 'viewer'];
+const canSetHouseholdNumber = ['secretary', 'punong_barangay', 'admin'];
+const canCertify = ['secretary', 'admin'];
+const canValidate = ['punong_barangay', 'admin'];
 
 function getListFilter(req) {
   const { user } = req;
+  if (user.role === 'admin') return {};
   if (user.role === 'resident') {
     return { createdBy: user._id };
   }
@@ -80,13 +82,31 @@ function getListFilter(req) {
   return {};
 }
 
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').trim();
+}
+
 export const list = async (req, res) => {
   try {
     const filter = getListFilter(req);
-    const { barangay, cityMunicipality, status, page = 1, limit = 20 } = req.query;
+    const { barangay, cityMunicipality, status, search, address, householdNumber, page = 1, limit = 20 } = req.query;
     if (barangay) filter.barangay = barangay;
     if (cityMunicipality) filter.cityMunicipality = cityMunicipality;
     if (status) filter.status = status;
+    if (householdNumber && escapeRegex(householdNumber)) {
+      filter.householdNumber = new RegExp(escapeRegex(householdNumber), 'i');
+    }
+    if (address && escapeRegex(address)) {
+      filter.householdAddress = new RegExp(escapeRegex(address), 'i');
+    }
+    if (search && escapeRegex(search)) {
+      const re = new RegExp(escapeRegex(search), 'i');
+      filter.$or = [
+        { headOfFamily: re },
+        { householdAddress: re },
+        { householdNumber: re },
+      ];
+    }
 
     const skip = (Math.max(1, parseInt(page, 10)) - 1) * Math.min(100, Math.max(1, parseInt(limit, 10)));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
@@ -133,6 +153,7 @@ export const create = async (req, res) => {
     if (data.inhabitants?.length) data.numberOfMembers = data.inhabitants.length;
     const household = await Household.create(data);
     await syncHouseholdToFormB(household);
+    logActivity(req, { action: 'create', resource: 'household', resourceId: household._id.toString() });
     res.status(201).json(household);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -159,6 +180,7 @@ export const update = async (req, res) => {
     }
     await household.save();
     await syncHouseholdToFormB(household);
+    logActivity(req, { action: 'update', resource: 'household', resourceId: household._id.toString() });
     res.json(household);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -170,6 +192,7 @@ export const remove = async (req, res) => {
     const filter = getListFilter(req);
     const household = await Household.findOneAndDelete({ _id: req.params.id, ...filter });
     if (!household) return res.status(404).json({ message: 'Household not found' });
+    logActivity(req, { action: 'delete', resource: 'household', resourceId: req.params.id });
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

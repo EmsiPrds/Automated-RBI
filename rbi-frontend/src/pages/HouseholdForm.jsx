@@ -53,6 +53,7 @@ export default function HouseholdForm() {
     barangay: '',
     householdAddress: '',
     householdNumber: '',
+    headOfFamily: '',
     inhabitants: [emptyInhabitant()],
     dataSource: user?.role === 'resident' ? 'self-entered' : 'staff-assisted',
   });
@@ -74,6 +75,7 @@ export default function HouseholdForm() {
           barangay: h.barangay || '',
           householdAddress: h.householdAddress || '',
           householdNumber: h.householdNumber || '',
+          headOfFamily: h.headOfFamily || '',
           inhabitants: (h.inhabitants?.length ? h.inhabitants.map((i) => ({
             ...emptyInhabitant(),
             ...i,
@@ -118,6 +120,7 @@ export default function HouseholdForm() {
       barangay: form.barangay,
       householdAddress: form.householdAddress,
       householdNumber: canSetHouseholdNumber ? form.householdNumber : undefined,
+      headOfFamily: form.headOfFamily || undefined,
       inhabitants: form.inhabitants.map((inv) => ({
         ...inv,
         dateOfBirth: inv.dateOfBirth || undefined,
@@ -177,6 +180,10 @@ export default function HouseholdForm() {
               <input value={form.householdNumber} onChange={(e) => update('householdNumber', e.target.value)} placeholder="Assigned by Secretary" />
             </div>
           )}
+          <div className="form-group">
+            <label>Head of household</label>
+            <input value={form.headOfFamily} onChange={(e) => update('headOfFamily', e.target.value)} placeholder="e.g. LastName, FirstName" />
+          </div>
           {isStaff && (
             <div className="form-group">
               <label>Data source</label>

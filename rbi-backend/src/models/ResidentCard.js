@@ -11,6 +11,6 @@ const residentCardSchema = new mongoose.Schema(
 );
 
 residentCardSchema.index({ user: 1 }, { unique: true });
-residentCardSchema.index({ idNumber: 1 });
+// idNumber index omitted: unique: true on idNumber field already creates an index
 
 export default mongoose.model('ResidentCard', residentCardSchema);

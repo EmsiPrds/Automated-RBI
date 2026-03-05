@@ -66,6 +66,7 @@ export const getMyCard = async (req, res) => {
       eligible: true,
     });
   } catch (err) {
+    console.error('GET /api/resident-card', err.message || err);
     res.status(500).json({ message: err.message });
   }
 };

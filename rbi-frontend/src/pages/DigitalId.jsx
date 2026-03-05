@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import client from '../api/client';
 
@@ -19,70 +20,74 @@ export default function DigitalId() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return (
+      <div className="loading-pulse" style={{ padding: '2rem', color: 'var(--text-muted)' }}>
+        Loading...
+      </div>
+    );
+  }
 
   if (error && !card) {
     return (
-      <div className="card" style={{ maxWidth: 520 }}>
-        <h1 style={{ marginTop: 0 }}>Barangay Digital ID</h1>
-        <p style={{ color: 'var(--text-muted)' }}>
+      <motion.div
+        className="card"
+        style={{ maxWidth: 520 }}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <h1 className="page-title">Barangay Digital ID</h1>
+        <p className="page-subtitle" style={{ marginBottom: '1rem' }}>
           Submit your household form (Form A). Once the Punong Barangay validates your record,
           your Digital ID will appear here. You can use it to claim benefits and access barangay
           services.
         </p>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <Link to="/households/new" className="btn btn-success">
-            New household (Form A)
+        <div className="quick-actions">
+          <Link to="/households/new">
+            <motion.span className="btn btn-success" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>New household (Form A)</motion.span>
           </Link>
-          <Link to="/households" className="btn btn-outline">
-            View households
+          <Link to="/households">
+            <motion.span className="btn btn-outline" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>View households</motion.span>
           </Link>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   const verifyUrl = typeof window !== 'undefined' ? `${window.location.origin}${card.verifyPath}` : card.verifyPath;
 
   return (
-    <>
-      <h1 style={{ marginTop: 0 }}>Barangay Digital ID</h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>
-        Use this ID when claiming benefits or using barangay services. Show the QR code at the
-        counter for verification.
-      </p>
-      <div
-        className="card"
-        style={{
-          maxWidth: 380,
-          border: '2px solid var(--border)',
-          padding: '1.5rem',
-          textAlign: 'center',
-        }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}>
+      <div className="page-header">
+        <h1 className="page-title">Barangay Digital ID</h1>
+        <p className="page-subtitle">
+          Use this ID when claiming benefits or using barangay services. Show the QR code at the counter for verification.
+        </p>
+      </div>
+      <motion.div
+        className="card digital-id-card"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
       >
-        <div style={{ marginBottom: '1rem', fontWeight: 700, color: 'var(--primary)', fontSize: '1.1rem' }}>
-          Records of Barangay Inhabitants
-        </div>
-        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-          Barangay Digital ID
-        </div>
-        <p style={{ margin: '0 0 0.25rem', fontWeight: 600, fontSize: '1.1rem' }}>{card.fullName}</p>
-        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>ID: {card.idNumber}</p>
+        <div className="digital-id-brand">Records of Barangay Inhabitants</div>
+        <div className="digital-id-label">Barangay Digital ID</div>
+        <p className="digital-id-name">{card.fullName}</p>
+        <p className="digital-id-number">ID: {card.idNumber}</p>
         {(card.householdAddress || card.barangay) && (
-          <p style={{ margin: '0.5rem 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          <p className="digital-id-address">
             {[card.householdAddress, card.barangay, card.cityMunicipality].filter(Boolean).join(', ')}
           </p>
         )}
-        <p style={{ margin: '0.25rem 0 1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+        <p className="digital-id-issued">
           Issued: {card.issuedAt ? new Date(card.issuedAt).toLocaleDateString() : '—'}
         </p>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem', background: '#fff', borderRadius: 8 }}>
+        <div className="digital-id-qr">
           <QRCodeSVG value={verifyUrl} size={140} level="M" />
         </div>
-        <p style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          Scan to verify
-        </p>
-      </div>
-    </>
+        <p className="digital-id-scan">Scan to verify</p>
+      </motion.div>
+    </motion.div>
   );
 }
