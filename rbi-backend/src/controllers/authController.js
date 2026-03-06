@@ -38,7 +38,8 @@ export const register = async (req, res) => {
     res.status(201).json({ token, user: u });
   } catch (err) {
     console.error('POST /api/auth/register', err.message || err);
-    res.status(500).json({ message: err.message });
+    const message = process.env.NODE_ENV === 'production' ? 'Registration failed. Please try again.' : err.message;
+    res.status(500).json({ message });
   }
 };
 
@@ -78,7 +79,12 @@ export const login = async (req, res) => {
     console.error('Login error:', err.message || err);
     console.error(err.stack);
     const status = err.message === 'JWT_SECRET is not configured' ? 503 : 500;
-    res.status(status).json({ message: err.message });
+    // In development, send the real message to help debug; in production use a generic message
+    const message =
+      process.env.NODE_ENV === 'production' && status === 500
+        ? 'Login failed. Please try again.'
+        : err.message;
+    res.status(status).json({ message });
   }
 };
 
