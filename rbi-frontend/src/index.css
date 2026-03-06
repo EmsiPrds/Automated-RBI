@@ -225,6 +225,41 @@ input, select, textarea, button {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
+.input-with-toggle {
+  position: relative;
+  display: flex;
+}
+.input-with-toggle input {
+  padding-right: 2.75rem;
+  flex: 1;
+}
+.password-toggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+}
+.password-toggle:hover {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+.password-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 /* Tables */
 .table-wrap {
   overflow-x: auto;
@@ -421,6 +456,65 @@ tbody tr {
   color: var(--text-muted);
 }
 
+/* Splash screen */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(165deg, var(--bg) 0%, var(--bg-subtle) 50%, #e0e7ff 100%);
+  z-index: 9999;
+  animation: splash-fade-out 0.4s ease-out forwards;
+  animation-play-state: paused;
+}
+.splash-screen.splash-exiting {
+  animation-play-state: running;
+}
+@keyframes splash-fade-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.splash-content {
+  text-align: center;
+}
+.splash-logo {
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.04em;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 2px 12px rgba(37, 99, 235, 0.2);
+}
+.splash-tagline {
+  margin: 0 0 2rem;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.splash-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.splash-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: splash-bounce 0.6s ease-in-out infinite both;
+}
+.splash-dot:nth-child(1) { animation-delay: 0s; }
+.splash-dot:nth-child(2) { animation-delay: 0.15s; }
+.splash-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes splash-bounce {
+  0%, 80%, 100% { transform: scale(0.85); opacity: 0.6; }
+  40% { transform: scale(1.2); opacity: 1; }
+}
+
 /* Loading skeleton */
 .loading-pulse {
   animation: pulse 1.5s ease-in-out infinite;
@@ -519,6 +613,90 @@ tbody tr {
 .btn-sm {
   padding: 0.35rem 0.75rem;
   font-size: 0.8125rem;
+}
+
+/* Landing page */
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(165deg, var(--bg) 0%, var(--bg-subtle) 50%, #e0e7ff 100%);
+}
+.landing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.landing-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.03em;
+}
+.landing-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.landing-nav-link {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.9375rem;
+}
+.landing-nav-link:hover {
+  color: var(--primary);
+}
+.landing-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+.landing-title {
+  margin: 0 0 1rem;
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  line-height: 1.2;
+  max-width: 20ch;
+}
+.landing-lead {
+  margin: 0 0 1.75rem;
+  font-size: 1.0625rem;
+  color: var(--text-muted);
+  max-width: 42ch;
+  line-height: 1.6;
+}
+.landing-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.landing-verify {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+}
+.landing-verify a {
+  font-weight: 500;
+}
+.landing-footer {
+  padding: 1rem 1.5rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+.landing-footer p {
+  margin: 0;
 }
 
 /* Auth pages (Login / Register) */

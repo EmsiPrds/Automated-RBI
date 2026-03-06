@@ -10,6 +10,7 @@ import {
   validate,
   submit,
 } from '../controllers/formBController.js';
+import { generateFormBPdf } from '../controllers/formBPdfController.js';
 import { protect } from '../middleware/auth.js';
 import { requireRole, requireBarangayScope, requireNotViewer } from '../middleware/roleCheck.js';
 
@@ -18,6 +19,7 @@ const router = express.Router();
 router.use(protect);
 
 router.get('/', requireBarangayScope, list);
+router.get('/:id/pdf', requireBarangayScope, generateFormBPdf);
 router.get('/:id', requireBarangayScope, getOne);
 
 router.post(

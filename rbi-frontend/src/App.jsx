@@ -2,6 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
+import SplashScreen from './components/SplashScreen';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -17,31 +19,31 @@ import VerifyId from './pages/VerifyId';
 
 function PrivateRoute({ children, roles }) {
   const { user, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="app-shell" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <div className="loading-pulse" style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>Loading...</div>
-      </div>
-    );
-  }
+  if (loading) return <SplashScreen />;
   if (!user) return <Navigate to="/login" replace />;
   if (roles && !roles.includes(user.role)) return <Navigate to="/" replace />;
   return children;
 }
 
+function RootOrLanding() {
+  const { user, loading } = useAuth();
+  if (loading) return <SplashScreen />;
+  if (!user) return <Landing />;
+  return (
+    <PrivateRoute>
+      <Layout />
+    </PrivateRoute>
+  );
+}
+
 export default function App() {
+  const { loading } = useAuth();
+  if (loading) return <SplashScreen />;
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route
-        path="/"
-        element={
-          <PrivateRoute>
-            <Layout />
-          </PrivateRoute>
-        }
-      >
+      <Route path="/" element={<RootOrLanding />}>
         <Route index element={<Dashboard />} />
         <Route path="households" element={<HouseholdList />} />
         <Route path="households/new" element={<HouseholdForm />} />

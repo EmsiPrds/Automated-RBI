@@ -23,6 +23,7 @@ export default function FormBView() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [certLoading, setCertLoading] = useState(null);
+  const [formBPdfLoading, setFormBPdfLoading] = useState(false);
 
   useEffect(() => {
     client.get(`/form-b/${id}`)
@@ -54,6 +55,22 @@ export default function FormBView() {
       .finally(() => setCertLoading(null));
   };
 
+  const downloadFormBPdf = () => {
+    setFormBPdfLoading(true);
+    client.get(`/form-b/${id}/pdf`, { responseType: 'blob' })
+      .then((res) => {
+        const blob = new Blob([res.data], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = res.headers['content-disposition']?.split('filename=')[1]?.replace(/"/g, '') || 'RBI-Form-B.pdf';
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => alert('Failed to generate Form B PDF.'))
+      .finally(() => setFormBPdfLoading(false));
+  };
+
   if (loading) return <div className="loading-pulse" style={{ padding: '2rem', color: 'var(--text-muted)' }}>Loading...</div>;
   if (!record) return <p className="error-msg">Form B record not found.</p>;
 
@@ -81,6 +98,9 @@ export default function FormBView() {
           <p className="page-subtitle"><span className={`badge badge-${record.status}`}>{record.status}</span></p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <motion.button type="button" className="btn btn-outline" disabled={formBPdfLoading} onClick={downloadFormBPdf} whileTap={{ scale: 0.98 }}>
+            {formBPdfLoading ? 'Generating...' : 'Download Form B (PDF)'}
+          </motion.button>
           {canEdit && <Link to={`/form-b/${id}/edit`} className="btn">Edit</Link>}
           {canSubmit && <motion.button type="button" className="btn btn-success" disabled={actionLoading} onClick={() => doAction('submit')} whileTap={{ scale: 0.98 }}>Submit for certification</motion.button>}
           {canCertify && <motion.button type="button" className="btn btn-success" disabled={actionLoading} onClick={() => doAction('certify')} whileTap={{ scale: 0.98 }}>Certify</motion.button>}

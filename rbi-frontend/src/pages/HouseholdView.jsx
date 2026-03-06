@@ -14,6 +14,7 @@ export default function HouseholdView() {
   const [household, setHousehold] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     client.get(`/households/${id}`)
@@ -27,6 +28,22 @@ export default function HouseholdView() {
     client.patch(`/households/${id}/${action}`, action === 'submit' ? { preparedBy: user?.fullName } : {})
       .then((res) => setHousehold(res.data))
       .finally(() => setActionLoading(false));
+  };
+
+  const downloadFormAPdf = () => {
+    setPdfLoading(true);
+    client.get(`/households/${id}/pdf`, { responseType: 'blob' })
+      .then((res) => {
+        const blob = new Blob([res.data], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = res.headers['content-disposition']?.split('filename=')[1]?.replace(/"/g, '') || 'RBI-Form-A.pdf';
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => alert('Failed to generate Form A PDF.'))
+      .finally(() => setPdfLoading(false));
   };
 
   if (loading) {
@@ -55,6 +72,9 @@ export default function HouseholdView() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <motion.button type="button" className="btn btn-outline" disabled={pdfLoading} onClick={downloadFormAPdf} whileTap={{ scale: 0.98 }}>
+            {pdfLoading ? 'Generating...' : 'Download Form A (PDF)'}
+          </motion.button>
           {canEdit && <Link to={`/households/${id}/edit`} className="btn">Edit</Link>}
           {canSubmit && <motion.button type="button" className="btn btn-success" disabled={actionLoading} onClick={() => doAction('submit')} whileTap={{ scale: 0.98 }}>Submit for certification</motion.button>}
           {canCertify && <motion.button type="button" className="btn btn-success" disabled={actionLoading} onClick={() => doAction('certify')} whileTap={{ scale: 0.98 }}>Certify</motion.button>}
