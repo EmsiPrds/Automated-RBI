@@ -82,7 +82,7 @@ export default function Reports() {
         datasets: [
           {
             data: [data.bySex.male || 0, data.bySex.female || 0, data.bySex.other || 0],
-            backgroundColor: ['#2563eb', '#ec4899', '#94a3b8'],
+            backgroundColor: ['#333366', '#FF9933', '#000000'],
             borderWidth: 0,
           },
         ],
